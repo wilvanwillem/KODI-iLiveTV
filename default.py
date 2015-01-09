@@ -94,7 +94,7 @@ try:
 
     remote_debugger = addon.getSetting('remote_debugger')
     remote_debugger_host = addon.getSetting('remote_debugger_host')
-    remote_debugger = 'true'
+    remote_debugger = 'false'
     remote_debugger_host = 'localhost'
     # append pydev remote debugger
     if remote_debugger == 'true':
@@ -120,7 +120,7 @@ mode = plugin_queries['mode']
 if mode == 'main':
     log(mode)
 
-    url = 'https://www.primewire.ag/towatch/ddurdle'
+    url = 'http://www.mobileonline.tv/index.php'
     header = { 'User-Agent' : user_agent }
 
     req = urllib2.Request(url, None, header)
@@ -133,17 +133,19 @@ if mode == 'main':
 
     response_data = response.read()
 
-    for r in re.finditer('<td align="center"><a href="([^\"]+)">([^\<]+)</a></td>',
+    for r in re.finditer('<a class="contentLink" href="([^\"]+)" data-ajax="false"><strong>([^\<]+)</strong></a>',
                          response_data, re.DOTALL):
         url,title = r.groups()
-        addDirectory('plugin://plugin.video.ilivetv/?mode=subpage&url=' + url,title)
+#        addVideo('plugin://plugin.video.ilivetv/?mode=subpage&title='+str(title)+'&url=' + url,title)
+        addVideo('plugin://plugin.video.ilivetv/?mode=subpage&title='+str(title)+'&url=' + url,{ 'title' : title , 'plot' : title }, title)
+
 #        addDirectory('plugin://plugin.video.layanmovie/?mode=subpage&url=' + url + '?orderby=title',title + addon.getLocalizedString(30002))
 
 
 #play a URL that is passed in (presumely requires authorizated session)
 elif mode == 'subpage':
     url = plugin_queries['url']
-    url = 'https://www.primewire.ag'+url
+    title = plugin_queries['title']
 
     header = { 'User-Agent' : user_agent }
 
@@ -163,46 +165,11 @@ elif mode == 'subpage':
 #    for url in match:
 #      addDirectory('plugin://plugin.video.layanmovie?mode=subpage&url=' + url,'<< ' + addon.getLocalizedString(30007) + ' <<')
 
-    for r in re.finditer('<a href="([^\"]+)" onClick="return .*?<script type="text/javascript">document.writeln\(\'([^\']+)\'\);</script>',
+    for r in re.finditer('<a href=([^\ ]+) target="(_blank)">Link 2 \(HLS\)',
                          response_data, re.DOTALL):
             url,site = r.groups()
-#            addVideo('plugin://plugin.video.primewire/?mode=videopage&url=' + url, { 'title' : site , 'plot' : site },site)
-            url = 'https://www.primewire.ag'+url
-            url = re.sub('&', '---', url)
-            url = re.sub(' ', '+', url)
-
-            addVideo('plugin://plugin.video.ilivetv/?mode=streamurl&domain='+site+'&url=' + url, { 'title' : site , 'plot' : site },site)
-#            url = re.sub('---', '&', url)
-#            req = urllib2.Request(url, None, header)
-
-#            try:
-#                response = urllib2.urlopen(req)
-#            except urllib2.URLError, e:
-#                log(str(e), True)
-
-
-    addVideo('plugin://plugin.video.primewire/?mode=videopage&url=' + url, { 'title' : site , 'plot' : site },'---')
-
-
-    for r in re.finditer('<tbody>.*?</tbody>',
-                         response_data, re.DOTALL):
-        entry = r.group()
-
-
-        url = ''
-        site = ''
-        for r in re.finditer('<a href="([^\"]+)" onClick="(return) .*?',
-#    for r in re.finditer('<a href="([^\"]+)" onClick="return .*?<script type="text/javascript">document.writeln(\'([^\']+)\');</script>',
-                         entry, re.DOTALL):
-            url,urlID = r.groups()
-
-
-        for r in re.finditer('(document).writeln\(\'([^\']+)\'\)',
-#    for r in re.finditer('<a href="([^\"]+)" onClick="return .*?<script type="text/javascript">document.writeln(\'([^\']+)\');</script>',
-                         entry, re.DOTALL):
-            siteID,site = r.groups()
-            addVideo('plugin://plugin.video.primewire/?mode=videopage&url=' + url, { 'title' : site , 'plot' : site },site)
-
+            item = xbmcgui.ListItem(path=url)
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, item)
 
 
 #play a video given its exact-title
